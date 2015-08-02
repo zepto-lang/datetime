@@ -3,8 +3,8 @@
 A minimal datetime converter for zepto, more or less
 based on Python datetime (but heavily inspired by it).
 
-It is not done yet (i.e. timestamps are not taken into account
-in the calulations, only in the strings).
+It is not done yet (i.e. time zones are probably implemented
+wrongfully).
 
 # Usage
 
@@ -37,6 +37,18 @@ Please not that information about timezone and usecs gets lost when doing someth
 ```
 
 This is due to the nature of timestamps.
+
+# Example
+
+```clojure
+(load "zpbash.zp")
+(load "datetime.zp")
+
+(datetime:from-unix-timestamp (bash:unix-timestamp))
+; this will probably be wrong if you are not okay with UTC/GMT.
+; Where I live for example (Berlin CEST, +2 hours), this is
+; almost exactly 2 hours behind.
+```
 
 <br/>
 

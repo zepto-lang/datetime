@@ -70,22 +70,24 @@
 (define (datetime:_weekday-string ordinal)
   (list-ref datetime:_DAYNAMES (+ (mod (+ ordinal 6) 7) 1)))
 
-(define (datetime:_format-time ord y m d hh mm ss tmz us)
+(define (datetime:_format-time ord y m d hh mm ss tmz tzdelta us)
   (let* ((trail (lambda (x) (if (> 2 (length x)) (++ "0" x) x)))
+         (tzdstr (if (/= 0 tzdelta) (++ " (" (number->string tzdelta) ")") ""))
          (fillns (lambda (x) 
             (define (fill str l)
               (if (> l 0)
                 (fill (++ "0" str) (- l 1))
                 str))
              (fill x (- 6 (length x)))))
-         (result (++ (datetime:_weekday-string ord) " " (number->string d) " " (number->string y)
+         (result (++ (datetime:_weekday-string ord) " " (number->string d) " "
+                     (list-ref datetime:_MONTHNAMES m) " " (number->string y)
                      " " (trail (number->string hh)) ":" (trail (number->string mm)) ":"
                      (trail (number->string ss)))))
     (if (null? us)
-        (++ result " " tmz)
-        (++ result "." (fillns (number->string us)) " " tmz))))
+        (++ result " " tmz tzdstr)
+        (++ result "." (fillns (number->string us)) " " tmz tzdstr))))
 
-(define (datetime:_to-unix y m d hh mm ss)
+(define (datetime:_to-unix y m d hh mm ss tzdelta)
   (let ((yy (reduce
               (lambda (acc x)
                 (if (datetime:_is_leap x) (+ 366 acc) (+ 365 acc)))
@@ -94,7 +96,7 @@
     (+ (* yy 24 60 60)
        (* (list-ref datetime:_DAYS_BEFORE_MONTH m) 24 60 60)
        (* (- d 1) 24 60 60)
-       (* hh 60 60)
+       (+ (* hh 60 60) tzdelta)
        (* mm 60)
        ss)))
 

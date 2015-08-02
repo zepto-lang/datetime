@@ -11,7 +11,8 @@
                  "min" (extra "minutes")
                  "sec" (extra "seconds")
                  "usec" (extra "useconds")
-                 "tmz" (extra "timezone")))))
+                 "tz" (extra "timezone")
+                 "tzdelta" (extra "timezone-delta")))))
 
 (define (datetime:to-ordinal . args)
   "returns the proleptic gregorian ordinal for a datetime object or a tuple
@@ -44,7 +45,8 @@
   (datetime:_to-unix (obj "year") (obj "month") (obj "day")
                        (val-or-zero (obj "hours"))
                        (val-or-zero (obj "min"))
-                       (val-or-zero (obj "sec")))))
+                       (val-or-zero (obj "sec"))
+                       (val-or-zero (obj "tzdelta")))))
 
 (define (datetime:from-unix-timestamp timestamp)
   "returns the datetime object corresponding to the unix timestamp"
@@ -54,6 +56,11 @@
                                        "minutes" (list-ref tuple 4)
                                        "seconds" (list-ref tuple 5)))))
 
+(define (datetime:utc? obj)
+  "returns whether datetime is in utc; if no time zone is set, assume it is"
+  (if (null? (obj "tz"))
+    #t
+    (string-ci=? (obj "tz") "UTC")))
 
 (define (datetime:to-string obj)
   "returns date-like string for datetime object"
@@ -63,5 +70,6 @@
                          (val-or (obj "hours") 0)
                          (val-or (obj "min") 0)
                          (val-or (obj "sec") 0)
-                         (val-or (obj "tmz") "GMT")
+                         (val-or (obj "tz") "GMT")
+                         (val-or (obj "tzdelta") 0)
                          (val-or (obj "usec") (nil)))))
