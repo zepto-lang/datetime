@@ -1,0 +1,9 @@
+(load "datetime.zp")
+
+(define x (datetime:from-unix 100))
+(write x)
+(define y (datetime:to-unix (make-hash [:year 2010]
+                                       [:month 10]
+                                       [:day 10]
+                                       [:hours 12])))
+(write y)
