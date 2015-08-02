@@ -31,12 +31,12 @@ The following endpoints are exposed:
 ; returns a string akin to the bash date command, like so: Sun 2 Aug 2015 15:58:12.000012 GMT
 ```
 
-Please not that information about timezone and usecs gets lost when doing somethin akin to:
+Please not that information about timezone and &micro;seconds gets lost when doing something akin to:
 ```clojure
 (datetime:from-unix-timestamp (datetime:to-unix-timestamp foo-date))
 ```
 
-This is due to the nature of timestamps.
+This is due to the nature of unix timestamps.
 
 # Example
 
