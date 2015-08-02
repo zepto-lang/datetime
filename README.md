@@ -1,7 +1,7 @@
 # datetime
 
 A minimal datetime converter for zepto, more or less
-based on Python datetime (but heavily inspired by it).
+based on Python datetime (or heavily inspired by it).
 
 It is not done yet (i.e. time zones are probably implemented
 wrongfully).
