@@ -40,6 +40,7 @@ This is due to the nature of timestamps.
 
 # Example
 
+A silly, contrived example script:
 ```clojure
 (load "zpbash.zp")
 (load "datetime.zp")
