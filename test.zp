@@ -1,9 +1,9 @@
 (load "datetime.zp")
 
-(define x (datetime:from-unix 100))
+(define x (datetime:make-datetime 2015 8 2 #{"hours" 15 "minutes" 58 "seconds" 12 "useconds" 12 "tmz" "GMT"}))
+(define y (datetime:to-unix-timestamp x))
+(define z (datetime:from-unix-timestamp y))
 (write x)
-(define y (datetime:to-unix (make-hash [:year 2010]
-                                       [:month 10]
-                                       [:day 10]
-                                       [:hours 12])))
-(write y)
+(write z)
+(write (datetime:to-string x))
+(write (datetime:to-string z))

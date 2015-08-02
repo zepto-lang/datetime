@@ -1,4 +1,67 @@
 (load "datetime_helpers.zp")
 
+(define (datetime:make-datetime year month day . args)
+  "make a datetime object from year, month and day
+    (optionally: hours, minutes, seconds, useconds and timezone passed in as a hash-map)"
+  (if (null? args)
+    (make-hash "year" year "month" month "day" day)
+    (let ((extra (car args)))
+      (make-hash "year" year "month" month "day" day
+                 "hours" (extra "hours")
+                 "min" (extra "minutes")
+                 "sec" (extra "seconds")
+                 "usec" (extra "useconds")
+                 "tmz" (extra "timezone")))))
 
-(define (datetime:from
+(define (datetime:to-ordinal . args)
+  "returns the proleptic gregorian ordinal for a datetime object or a tuple
+   of the form (year, month, day)"
+  (if (= 1 (length args))
+    (let ((date (car args)))
+      (datetime:_ymd2ord (date "year") (date "month") (date "day")))
+    (datetime:_ymd2ord (car args) (cadr args) (caddr args))))
+
+(define (datetime:from-ordinal ord)
+  "returns a datetime object from a proleptic gregorian ordinal"
+  (let ((tuple (datetime:_ord2ymd ord)))
+    (make-hash "year" (car tuple) "month" (cadr tuple) "day" (caddr tuple))))
+
+(define (datetime:weekday obj)
+  "returns the weekday of the given datetime object"
+  (mod (+ (datetime:to-ordinal obj) 6) 7))
+
+(define (datetime:weekday-string obj)
+  "returns the weekday of the given datetime object"
+  (datetime:_weekday-string (datetime:to-ordinal obj)))
+
+(define (datetime:month-string obj)
+  "returns the name of the current month"
+  (list-ref datetime:_MONTHNAMES (obj "month")))
+
+(define (datetime:to-unix-timestamp obj)
+  "returns the unix timestamp corresponding to the datetime object"
+  (let ((val-or-zero (lambda (x) (if (null? x) 0 x))))
+  (datetime:_to-unix (obj "year") (obj "month") (obj "day")
+                       (val-or-zero (obj "hours"))
+                       (val-or-zero (obj "min"))
+                       (val-or-zero (obj "sec")))))
+
+(define (datetime:from-unix-timestamp timestamp)
+  "returns the datetime object corresponding to the unix timestamp"
+  (let ((tuple (datetime:_from-unix timestamp)))
+    (datetime:make-datetime (car tuple) (cadr tuple) (caddr tuple)
+                            (make-hash "hours" (list-ref tuple 3)
+                                       "minutes" (list-ref tuple 4)
+                                       "seconds" (list-ref tuple 5)))))
+
+
+(define (datetime:to-string obj)
+  "returns date-like string for datetime object"
+  (let ((val-or (lambda (x dflt) (if (null? x) dflt x))))
+  (datetime:_format-time (datetime:to-ordinal obj)
+                         (obj "year") (obj "month") (obj "day")
+                         (val-or (obj "hours") 0)
+                         (val-or (obj "min") 0)
+                         (val-or (obj "sec") 0)
+                         (val-or (obj "tmz") "GMT")
+                         (val-or (obj "usec") (nil)))))
