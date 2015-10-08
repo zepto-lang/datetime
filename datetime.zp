@@ -3,16 +3,37 @@
 (define (datetime:make-datetime year month day . args)
   "make a datetime object from year, month and day
     (optionally: hours, minutes, seconds, useconds and timezone passed in as a hash-map)"
-  (if (null? args)
-    (make-hash "year" year "month" month "day" day)
-    (let ((extra (car args)))
-      (make-hash "year" year "month" month "day" day
-                 "hours" (extra "hours")
-                 "min" (extra "minutes")
-                 "sec" (extra "seconds")
-                 "usec" (extra "useconds")
-                 "tz" (extra "timezone")
-                 "tzdelta" (extra "timezone-delta")))))
+  (define (check-format args)
+    (define (iffand x y) (if x (eval y) x))
+    (define h (args "hours"))
+    (define m (args "minutes"))
+    (define s (args "seconds"))
+    (define u (args "usecond"))
+    (cond
+      ((iffand (not (nil? h)) '(or (< h 0) (> h 23))) [:error "Hours must lie between 0 and 23"])
+      ((iffand (not (nil? m)) '(or (< m 0) (> m 59))) [:error "Minutes must lie between 0 and 59"])
+      ((iffand (not (nil? s)) '(or (< s 0) (> s 59))) [:error "Seconds must lie between 0 and 59"])
+      ((iffand (not (nil? u)) '(or (< u 0) (> u 99999999))) [:error "Nanoseconds must lie between 0 and 99999999"])
+      (else [:success])))
+  (cond
+    ((or (> month 12) (< month 1)) (error "Month must lie between 1 and 12"))
+    ((and (= month 2) (> day 29)) (error "Day must lie between 1 and 29"))
+    ((and (= (mod month 2) 1) (> day 30)) (error "Day must lie between 1 and 30"))
+    ((or (> day 31) (< day 1)) (error "Day must lie between 1 and 31"))
+    (else 
+      (if (null? args)
+        (make-hash "year" year "month" month "day" day)
+        (let* ((extra (car args))
+               (format (check-format extra)))
+          (if (eqv? (car format) :error)
+            (error (cadr format))
+            (make-hash "year" year "month" month "day" day
+                       "hours" (extra "hours")
+                       "min" (extra "minutes")
+                       "sec" (extra "seconds")
+                       "usec" (extra "useconds")
+                       "tz" (extra "timezone")
+                       "tzdelta" (extra "timezone-delta"))))))))
 
 (define (datetime:to-ordinal . args)
   "returns the proleptic gregorian ordinal for a datetime object or a tuple
