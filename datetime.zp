@@ -31,6 +31,10 @@
   "returns the weekday of the given datetime object"
   (mod (+ (datetime:to-ordinal obj) 6) 7))
 
+(define (datetime:isoweekday obj)
+  "returns the isoweekday of the given datetime object"
+  (+ (datetime:weekday obj) 1))
+
 (define (datetime:weekday-string obj)
   "returns the weekday of the given datetime object"
   (datetime:_weekday-string (datetime:to-ordinal obj)))
@@ -73,3 +77,8 @@
                          (val-or (obj "tz") "GMT")
                          (val-or (obj "tzdelta") 0)
                          (val-or (obj "usec") (nil)))))
+
+(define (datetime:isoformat obj)
+  "returns a string of the format YYYY-MM-DD"
+  (++ (number->string (obj "year") 4) "-" (number->string (obj "month") 2) "-" (number->string (obj "day") 2)))
+
