@@ -37,7 +37,7 @@
 
 (define (datetime:month-string obj)
   "returns the name of the current month"
-  (list-ref datetime:_MONTHNAMES (obj "month")))
+  (list:ref datetime:_MONTHNAMES (obj "month")))
 
 (define (datetime:to-unix-timestamp obj)
   "returns the unix timestamp corresponding to the datetime object"
@@ -52,9 +52,9 @@
   "returns the datetime object corresponding to the unix timestamp"
   (let ((tuple (datetime:_from-unix timestamp)))
     (datetime:make-datetime (car tuple) (cadr tuple) (caddr tuple)
-                            (make-hash "hours" (list-ref tuple 3)
-                                       "minutes" (list-ref tuple 4)
-                                       "seconds" (list-ref tuple 5)))))
+                            (make-hash "hours" (list:ref tuple 3)
+                                       "minutes" (list:ref tuple 4)
+                                       "seconds" (list:ref tuple 5)))))
 
 (define (datetime:utc? obj)
   "returns whether datetime is in utc; if no time zone is set, assume it is"

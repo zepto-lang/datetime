@@ -5,7 +5,7 @@
 (define datetime:_DAYS_BEFORE_MONTH
       (map 
         (lambda (x) 
-          (let ((el (+ 1 (list-sum (list-ref datetime:_DAYS_IN_MONTH 0 x)))))
+          (let ((el (+ 1 (math:list-sum (list:ref datetime:_DAYS_IN_MONTH 0 x)))))
             (if (= 1 el) -1 el)))
         (range 0 13)))
 
@@ -22,12 +22,12 @@
 (define (datetime:_days_in_month year month) "returns number of days in month in year"
     (if (and (= month 2) (datetime:_is_leap year))
       29
-      (list-ref datetime:_DAYS_IN_MONTH month)))
+      (list:ref datetime:_DAYS_IN_MONTH month)))
 
 (define (datetime:_days_before_month year month) "number of days in year preceding first day of month"
     (if (and (> month 2) (datetime:_is_leap year))
-      (+ (list-ref datetime:_DAYS_BEFORE_MONTH month) 1)
-      (list-ref datetime:_DAYS_BEFORE_MONTH month)))
+      (+ (list:ref datetime:_DAYS_BEFORE_MONTH month) 1)
+      (list:ref datetime:_DAYS_BEFORE_MONTH month)))
 
 (define (datetime:_ymd2ord year month day) "ordinal, considering 01-Jan-0001 as day 1"
     (let ((dim (datetime:_days_in_month year month)))
@@ -58,17 +58,17 @@
          (if (or (= n1 4) (= n100 4))
           (list (- year 1) 12 31)
           (let* ((month (>> (+ n 50) 5))
-                 (prec (+ (list-ref datetime:_DAYS_BEFORE_MONTH month)
+                 (prec (+ (list:ref datetime:_DAYS_BEFORE_MONTH month)
                           (if (and (> month 2) (datetime:_is_leap year)) 1 0))))
             (if (> prec n)
               (let* ((month (- month 1))
-                     (prec (- prec (+ (list-ref datetime:_DAYS_IN_MONTH month)
+                     (prec (- prec (+ (list:ref datetime:_DAYS_IN_MONTH month)
                                       (if (and (> month 2) (datetime:_is_leap year)) 1 0)))))
                 (list year month (+ (- n prec) 1)))
               (list year month (+ (- n prec) 1)))))))
 
 (define (datetime:_weekday-string ordinal)
-  (list-ref datetime:_DAYNAMES (+ (mod (+ ordinal 6) 7) 1)))
+  (list:ref datetime:_DAYNAMES (+ (mod (+ ordinal 6) 7) 1)))
 
 (define (datetime:_format-time ord y m d hh mm ss tmz tzdelta us)
   (let* ((trail (lambda (x) (if (> 2 (length x)) (++ "0" x) x)))
@@ -80,7 +80,7 @@
                 str))
              (fill x (- 6 (length x)))))
          (result (++ (datetime:_weekday-string ord) " " (number->string d) " "
-                     (list-ref datetime:_MONTHNAMES m) " " (number->string y)
+                     (list:ref datetime:_MONTHNAMES m) " " (number->string y)
                      " " (trail (number->string hh)) ":" (trail (number->string mm)) ":"
                      (trail (number->string ss)))))
     (if (null? us)
@@ -94,7 +94,7 @@
               0
               (range 1970 y))))
     (+ (* yy 24 60 60)
-       (* (list-ref datetime:_DAYS_BEFORE_MONTH m) 24 60 60)
+       (* (list:ref datetime:_DAYS_BEFORE_MONTH m) 24 60 60)
        (* (- d 1) 24 60 60)
        (+ (* hh 60 60) tzdelta)
        (* mm 60)
@@ -106,8 +106,8 @@
          (d (- (/ ts (* 24 60 60)) (* y 365) ld))
          (get-m-until (lambda (n)
           (reduce (lambda (acc x) (if (< x n) x acc)) 0 datetime:_DAYS_BEFORE_MONTH)))
-         (m (list-index datetime:_DAYS_BEFORE_MONTH (get-m-until d)))
-         (mdays (list-ref datetime:_DAYS_BEFORE_MONTH m))
+         (m (list:index datetime:_DAYS_BEFORE_MONTH (get-m-until d)))
+         (mdays (list:ref datetime:_DAYS_BEFORE_MONTH m))
          (d (- d mdays))
          (tmpy (* y 365 24))
          (tmpd (* (+ d ld mdays) 24))
