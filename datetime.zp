@@ -1,4 +1,4 @@
-(load "datetime_helpers.zp")
+(load "datetime/datetime_helpers.zp")
 
 (define (datetime:make-datetime year month day . args)
   "make a datetime object from year, month and day

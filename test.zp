@@ -1,4 +1,4 @@
-(load "datetime.zp")
+(load "datetime/datetime.zp")
 
 (define x (datetime:make-datetime 2015 8 2 #{"hours" 15 "minutes" 58 "seconds" 12 "useconds" 12 "tmz" "GMT"}))
 (define y (datetime:to-unix-timestamp x))
