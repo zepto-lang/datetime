@@ -1,105 +1,128 @@
-(load "datetime_helpers.zp")
+(module "datetime"
+  (export
+    (list :make-datetime make-datetime)
+    (list :to-ordinal to-ordinal)
+    (list :from-ordinal from-ordinal)
+    (list :weekday weekday)
+    (list :isoweekday isoweekday)
+    (list :weekday-string weekday-string)
+    (list :month-string month-string)
+    (list :to-unix-timestamp to-unix-timestamp)
+    (list :from-unix-timestamp from-unix-timestamp)
+    (list :utc? utc?)
+    (list :to-string to-string)
+    (list :ddate-for ddate-for)
+    (list :ddate-from-timestamp ddate-from-timestamp)
+    (list :isoformat isoformat))
 
-(define (datetime:make-datetime year month day . args)
-  "make a datetime object from year, month and day
-    (optionally: hours, minutes, seconds, useconds and timezone passed in as a hash-map)"
-  (define (check-format args)
-    (define (iffand x y) (if x (eval y) x))
-    (define h (args "hours"))
-    (define m (args "minutes"))
-    (define s (args "seconds"))
-    (define u (args "usecond"))
+  (loads "datetime/datetime_helpers.zp")
+
+  (make-datetime (lambda (year month day . args)
+    "make a datetime object from year, month and day
+      (optionally: hours, minutes, seconds, useconds and timezone passed in as a hash-map)"
+    (define (check-format args)
+      (define (iffand x y) (if x (eval y) x))
+      (define h (args "hours"))
+      (define m (args "minutes"))
+      (define s (args "seconds"))
+      (define u (args "usecond"))
+      (cond
+        ((iffand (not (nil? h)) '(or (< h 0) (> h 23))) [:error "Hours must lie between 0 and 23"])
+        ((iffand (not (nil? m)) '(or (< m 0) (> m 59))) [:error "Minutes must lie between 0 and 59"])
+        ((iffand (not (nil? s)) '(or (< s 0) (> s 59))) [:error "Seconds must lie between 0 and 59"])
+        ((iffand (not (nil? u)) '(or (< u 0) (> u 99999999))) [:error "Nanoseconds must lie between 0 and 99999999"])
+        (else [:success])))
     (cond
-      ((iffand (not (nil? h)) '(or (< h 0) (> h 23))) [:error "Hours must lie between 0 and 23"])
-      ((iffand (not (nil? m)) '(or (< m 0) (> m 59))) [:error "Minutes must lie between 0 and 59"])
-      ((iffand (not (nil? s)) '(or (< s 0) (> s 59))) [:error "Seconds must lie between 0 and 59"])
-      ((iffand (not (nil? u)) '(or (< u 0) (> u 99999999))) [:error "Nanoseconds must lie between 0 and 99999999"])
-      (else [:success])))
-  (cond
-    ((or (> month 12) (< month 1)) (error "Month must lie between 1 and 12"))
-    ((and (= month 2) (> day 29)) (error "Day must lie between 1 and 29"))
-    ((and (= (mod month 2) 1) (> day 30)) (error "Day must lie between 1 and 30"))
-    ((or (> day 31) (< day 1)) (error "Day must lie between 1 and 31"))
-    (else 
-      (if (null? args)
-        (make-hash "year" year "month" month "day" day)
-        (let* ((extra (car args))
-               (format (check-format extra)))
-          (if (eqv? (car format) :error)
-            (error (cadr format))
-            (make-hash "year" year "month" month "day" day
-                       "hours" (extra "hours")
-                       "min" (extra "minutes")
-                       "sec" (extra "seconds")
-                       "usec" (extra "useconds")
-                       "tz" (extra "timezone")
-                       "tzdelta" (extra "timezone-delta"))))))))
+      ((or (> month 12) (< month 1)) (error "Month must lie between 1 and 12"))
+      ((and (= month 2) (> day 29)) (error "Day must lie between 1 and 29"))
+      ((and (= (mod month 2) 1) (> day 30)) (error "Day must lie between 1 and 30"))
+      ((or (> day 31) (< day 1)) (error "Day must lie between 1 and 31"))
+      (else 
+        (if (null? args)
+          (make-hash "year" year "month" month "day" day)
+          (let* ((extra (car args))
+                 (format (check-format extra)))
+            (if (eqv? (car format) :error)
+              (error (cadr format))
+              (make-hash "year" year "month" month "day" day
+                         "hours" (extra "hours")
+                         "min" (extra "minutes")
+                         "sec" (extra "seconds")
+                         "usec" (extra "useconds")
+                         "tz" (extra "timezone")
+                         "tzdelta" (extra "timezone-delta")))))))))
 
-(define (datetime:to-ordinal . args)
-  "returns the proleptic gregorian ordinal for a datetime object or a tuple
-   of the form (year, month, day)"
-  (if (= 1 (length args))
-    (let ((date (car args)))
-      (datetime:_ymd2ord (date "year") (date "month") (date "day")))
-    (datetime:_ymd2ord (car args) (cadr args) (caddr args))))
+  (to-ordinal (lambda (ord . args)
+    "returns the proleptic gregorian ordinal for a datetime object or a tuple
+     of the form (year, month, day)"
+    (if (= 0 (length args))
+      (datetime:_ymd2ord (ord "year") (ord "month") (ord "day")))
+      (datetime:_ymd2ord ord (car args) (cadr args))))
 
-(define (datetime:from-ordinal ord)
-  "returns a datetime object from a proleptic gregorian ordinal"
-  (let ((tuple (datetime:_ord2ymd ord)))
-    (make-hash "year" (car tuple) "month" (cadr tuple) "day" (caddr tuple))))
+  (from-ordinal (lambda (ord)
+    "returns a datetime object from a proleptic gregorian ordinal"
+    (let ((tuple (datetime:_ord2ymd ord)))
+      (make-hash "year" (car tuple) "month" (cadr tuple) "day" (caddr tuple)))))
 
-(define (datetime:weekday obj)
-  "returns the weekday of the given datetime object"
-  (mod (+ (datetime:to-ordinal obj) 6) 7))
+  (weekday (lambda (obj)
+    "returns the weekday of the given datetime object"
+    (mod (+ (datetime:to-ordinal obj) 6) 7)))
 
-(define (datetime:isoweekday obj)
-  "returns the isoweekday of the given datetime object"
-  (+ (datetime:weekday obj) 1))
+  (isoweekday (lambda (obj)
+    "returns the isoweekday of the given datetime object"
+    (+ (datetime:weekday obj) 1)))
 
-(define (datetime:weekday-string obj)
-  "returns the weekday of the given datetime object"
-  (datetime:_weekday-string (datetime:to-ordinal obj)))
+  (weekday-string (lambda (obj)
+    "returns the weekday of the given datetime object"
+    (datetime:_weekday-string (datetime:to-ordinal obj))))
 
-(define (datetime:month-string obj)
-  "returns the name of the current month"
-  (list:ref datetime:_MONTHNAMES (obj "month")))
+  (month-string (lambda (obj)
+    "returns the name of the current month"
+    (list:ref datetime:_MONTHNAMES (obj "month"))))
 
-(define (datetime:to-unix-timestamp obj)
-  "returns the unix timestamp corresponding to the datetime object"
-  (let ((val-or-zero (lambda (x) (if (null? x) 0 x))))
-  (datetime:_to-unix (obj "year") (obj "month") (obj "day")
-                       (val-or-zero (obj "hours"))
-                       (val-or-zero (obj "min"))
-                       (val-or-zero (obj "sec"))
-                       (val-or-zero (obj "tzdelta")))))
+  (to-unix-timestamp (lambda (obj)
+    "returns the unix timestamp corresponding to the datetime object"
+    (let ((val-or-zero (lambda (x) (if (null? x) 0 x))))
+    (datetime:_to-unix (obj "year") (obj "month") (obj "day")
+                         (val-or-zero (obj "hours"))
+                         (val-or-zero (obj "min"))
+                         (val-or-zero (obj "sec"))
+                         (val-or-zero (obj "tzdelta"))))))
 
-(define (datetime:from-unix-timestamp timestamp)
-  "returns the datetime object corresponding to the unix timestamp"
-  (let ((tuple (datetime:_from-unix timestamp)))
-    (datetime:make-datetime (car tuple) (cadr tuple) (caddr tuple)
-                            (make-hash "hours" (list:ref tuple 3)
-                                       "minutes" (list:ref tuple 4)
-                                       "seconds" (list:ref tuple 5)))))
+  (from-unix-timestamp (lambda (timestamp)
+    "returns the datetime object corresponding to the unix timestamp"
+    (let ((tuple (datetime:_from-unix timestamp)))
+      (datetime:make-datetime (car tuple) (cadr tuple) (caddr tuple)
+                              (make-hash "hours" (list:ref tuple 3)
+                                         "minutes" (list:ref tuple 4)
+                                         "seconds" (list:ref tuple 5))))))
 
-(define (datetime:utc? obj)
-  "returns whether datetime is in utc; if no time zone is set, assume it is"
-  (if (null? (obj "tz"))
-    #t
-    (string-ci=? (obj "tz") "UTC")))
+  (utc? (lambda (obj)
+    "returns whether datetime is in utc; if no time zone is set, assume it is"
+    (if (null? (obj "tz"))
+      #t
+      (string-ci=? (obj "tz") "UTC"))))
 
-(define (datetime:to-string obj)
-  "returns date-like string for datetime object"
-  (let ((val-or (lambda (x dflt) (if (null? x) dflt x))))
-  (datetime:_format-time (datetime:to-ordinal obj)
-                         (obj "year") (obj "month") (obj "day")
-                         (val-or (obj "hours") 0)
-                         (val-or (obj "min") 0)
-                         (val-or (obj "sec") 0)
-                         (val-or (obj "tz") "GMT")
-                         (val-or (obj "tzdelta") 0)
-                         (val-or (obj "usec") (nil)))))
+  (to-string (lambda (obj)
+    "returns date-like string for datetime object"
+    (let ((val-or (lambda (x dflt) (if (null? x) dflt x))))
+    (datetime:_format-time (datetime:to-ordinal obj)
+                           (obj "year") (obj "month") (obj "day")
+                           (val-or (obj "hours") 0)
+                           (val-or (obj "min") 0)
+                           (val-or (obj "sec") 0)
+                           (val-or (obj "tz") "GMT")
+                           (val-or (obj "tzdelta") 0)
+                           (val-or (obj "usec") (nil))))))
 
-(define (datetime:isoformat obj)
-  "returns a string of the format YYYY-MM-DD"
-  (++ (number->string (obj "year") 4) "-" (number->string (obj "month") 2) "-" (number->string (obj "day") 2)))
+  (ddate-from-timestamp (lambda (timestamp)
+    "returns a ddate string for unix timestamp"
+    (datetime:_hail-eris timestamp)))
 
+  (ddate-for (lambda (datetime)
+    "returns a ddate string for datetime object"
+    (ddate-from-timestamp (to-unix-timestamp datetime))))
+
+  (isoformat (lambda (obj)
+    "returns a string of the format YYYY-MM-DD"
+    (++ (number->string (obj "year") 4) "-" (number->string (obj "month") 2) "-" (number->string (obj "day") 2)))))

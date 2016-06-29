@@ -118,3 +118,48 @@
          (mm (- (/ ts 60) tmph tmpd tmpy))
          (ss (- ts (* mm 60) (* tmph 60) (* tmpd 60) (* tmpy 60))))
        (list (+ y 1970) m d hh mm ss)))
+
+(define datetime:_SECOND 1)
+(define datetime:_MINUTE (* 60 datetime:_SECOND))
+(define datetime:_HOUR (* 60 datetime:_MINUTE))
+(define datetime:_DAY (* 24 datetime:_HOUR))
+(define datetime:_YEAR (* 365 datetime:_DAY))
+
+(define datetime:_DDAYS {"Sweetmorn" "Boomtime" "Pungenday" "Prickle-Prickle" "Setting Orange"})
+(define datetime:_DSEASONS {"Chaos" "Discord" "Confusion" "Bureaucracy" "The Aftermath"})
+
+(define datetime:_HOLYDAYS
+  #{"Chaos" #{5  "Mungday"
+              50 "Chaoflux"}
+    "Discord" #{5  "Mojoday"
+                50 "Discoflux"}
+    "Confusion" #{5  "Syaday"
+                  50 "Confuflux"}
+    "Bureaucracy" #{5  "Zaraday"
+                    50 "Bureflux"}
+    "The Aftermath" #{5  "Maladay"
+                      50 "Afflux"}})
+
+(define (datetime:_hail-eris ts)
+  (let* ((leps   (floor (/. ts datetime:_YEAR 4)))
+         (ts     (- ts (* leps datetime:_DAY)))
+         (cur    (floor (/. (mod ts datetime:_YEAR) datetime:_DAY)))
+         (flarf  (floor (+ (/. ts datetime:_YEAR) 3136)))
+         (ist    (= 0 (mod (- flarf 3130) 4)))
+         (tabby  (and ist (> cur 59)))
+         (cur    (if tabby (sub1 cur) cur))
+         (gwar   (add1 (floor (mod cur 73))))
+         (sn     (floor (/. cur 73)))
+         (woody  (remainder cur 5))
+         (numstr (lambda (d)
+                  (++ (->string d)
+                    (if (and (> (mod d 100) 11) (< (mod d 100) 21))
+                      "th"
+                      (case (mod d 10)
+                        ((1) "st")
+                        ((2) "nd")
+                        ((3) "rd")
+                        (else "th"))))))
+         (holy   (get-from datetime:_HOLYDAYS (list (datetime:_DSEASONS sn) gwar) #f)))
+    (++ (datetime:_DDAYS woody) ", " (datetime:_DSEASONS sn) " " (numstr gwar) ", " (->string flarf)  " YOLD"
+        (if (truthy? holy) (++ "\nIt's " holy "!") ""))))
