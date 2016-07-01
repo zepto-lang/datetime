@@ -105,7 +105,7 @@
 
   (to-string (lambda (obj)
     "returns date-like string for datetime object"
-    (let ((val-or (lambda (x dflt) (if (null? x) dflt x))))
+    (let ((val-or (lambda (x dflt) (if (falsy? x) dflt x))))
     (datetime:_format-time (datetime:to-ordinal obj)
                            (obj "year") (obj "month") (obj "day")
                            (val-or (obj "hours") 0)
@@ -113,7 +113,7 @@
                            (val-or (obj "sec") 0)
                            (val-or (obj "tz") "GMT")
                            (val-or (obj "tzdelta") 0)
-                           (val-or (obj "usec") (nil))))))
+                           (val-or (obj "usec") 0)))))
 
   (ddate-from-timestamp (lambda (timestamp)
     "returns a ddate string for unix timestamp"
