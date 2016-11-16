@@ -54,8 +54,8 @@
     "returns the proleptic gregorian ordinal for a datetime object or a tuple
      of the form (year, month, day)"
     (if (= 0 (length args))
-      (_ymd2ord (ord "year") (ord "month") (ord "day")))
-      (_ymd2ord ord (car args) (cadr args))))
+      (_ymd2ord (ord "year") (ord "month") (ord "day"))
+      (_ymd2ord ord (car args) (cadr args)))))
 
   (from-ordinal (lambda (ord)
     "returns a datetime object from a proleptic gregorian ordinal"
