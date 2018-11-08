@@ -47,8 +47,8 @@ A silly, contrived example script:
 
 (datetime:from-unix-timestamp (bash:unix-timestamp))
 ; this will probably be wrong if you are not okay with UTC/GMT.
-; Where I live for example (Berlin CEST, +2 hours), this is
-; almost exactly 2 hours behind.
+; Where I live for example (Berlin CET, +1 hour), this is
+; exactly 1 hour behind (2 in the summer because of DST).
 ```
 
 <br/>
